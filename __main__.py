@@ -37,42 +37,38 @@ chromeOptions.add_experimental_option("prefs", prefs)
 driver = webdriver.Chrome(executable_path=chrome_path,chrome_options=chromeOptions)
 driver.get("http://stats.espncricinfo.com/ci/engine/records/team/match_results.html?class=2;id=2010;team=8;type=year")
 match_id = driver.find_element_by_xpath("""//*[@id="ciHomeContentlhs"]/div[3]/div/table[1]/tbody/tr[2]/td[7]""")
-print(match_id.text)
+match_id_val = match_id.text;
+# print(match_id.text)
 match_id .click()
 match_main = driver.find_elements_by_class_name("gameHeader")
 
 for post in match_main:
-    info_overview = post.find_element_by_class_name("cscore_info-overview")
-    print("##########################"+info_overview.text)
-    player_of_match = post.find_element_by_class_name("gp__cricket__player-match__player__detail__link")
-    print(player_of_match.text)
-    winning_team = post.find_element_by_class_name("cscore_notes_game");
-    print(winning_team.text)
+    if post.text != "":
+        info_overview = post.find_element_by_class_name("cscore_info-overview").text
+        # print("##########################"+info_overview)
+        player_of_match = post.find_element_by_class_name("gp__cricket__player-match__player__detail__link").text
+        # print(player_of_match)
+        winning_team = post.find_element_by_class_name("cscore_notes_game").text
+        # print(winning_team)
+        scores = post.find_elements_by_class_name("cscore_team")
+        inn_1_score = scores[0].text
+        inn_2_score = scores[1].text
 
-    inn_1_score = ""
-    inn_2_score = ""
-    scores = post.find_elements_by_class_name("cscore_team")
-    inn_1_score = scores[0].text
-    inn_2_score = scores[1].text
-
-
+print(player_of_match)
+match = MatchData(match_id_val, info_overview, player_of_match, inn_1_score+" "+inn_2_score, winning_team)
 
 first_inning = driver.find_element_by_id("gp-inning-00") #First inning data
 getInningData(first_inning)
 second_inning = driver.find_element_by_id("gp-inning-01") #Second inning data
 getInningData(second_inning)
 
-# with open('./CricData.csv', 'w', newline='', encoding='utf-8') as outfile:
-#     # for i in range(0,10):
-#     csvWriter = csv.writer(outfile)
-#     csvWriter.writerow(['User_Id', 'User_Location', 'Review_Date', 'Rating', 'Title', 'Feedback', 'Sentiment_Value'])
-#     for review in UserReviews:
-#         # review = UserReviews[i]
-#
-#         csvWriter.writerow(
-#             [review.userId, review.userLocation, review.reviewDate, review.rating, review.title, review.feedback,
-#              review.sentimentValue])
-# outfile.close()
+with open('./CricData.csv', 'w', newline='', encoding='utf-8') as outfile:
+    csvWriter = csv.writer(outfile)
+    csvWriter.writerow(['Match', 'Title', 'MoM', 'Result', 'Winner'])
+    csvWriter.writerow([match.match_id, match.match_title, match.mom, match.match_result, match.match_win])
+outfile.close()
+
+del match
 
 driver.back()
 
