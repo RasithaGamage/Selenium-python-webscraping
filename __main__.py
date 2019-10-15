@@ -1,6 +1,5 @@
 import csv
 from telnetlib import EC
-
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -8,27 +7,56 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from MatchData import MatchData
 
-
-
-
 def getInningData(inning):
     batsmen_list = inning.find_element_by_class_name("scorecard-section") #for batsmens
     batsmen_score = batsmen_list.find_elements_by_class_name("flex-row")
     for post2 in batsmen_score:
         try:
             batsman = post2.find_element_by_class_name("batsmen")
-            commentary = post2.find_element_by_class_name("commentary-content")
-            print(batsman.text)
-            print(commentary.get_attribute("textContent"))
+            score_record = batsman.find_elements_by_class_name("runs")
+            player_name = batsman.find_element_by_class_name("batsmen").text
+            player_link = batsman.find_element_by_class_name("batsmen").find_element_by_tag_name("a").get_attribute('href')
+            runs = score_record[0].text
+            balls = score_record[1].text
+            minutes = score_record[2].text
+            _4s = score_record[3].text
+            _6s = score_record[4].text
+            strike_Rate = score_record[5].text
+            print(player_name+" "+player_link+" "+runs+" "+balls+" "+minutes+" "+_4s+" "+_6s+" "+strike_Rate)
+
+        except NoSuchElementException:
+            print("")
+        try:
+            commentary1 = post2.find_element_by_class_name("commentary-content")
+            commentary = commentary1
+            print(commentary)
+        except NoSuchElementException:
+            print("")
+        try:
+            commentary2 = post2.find_element_by_class_name("commentary") #for find not out batsman
+            dismissed_by =commentary2.get_attribute("textContent")
+            print(dismissed_by)
         except NoSuchElementException:
             print("")
 
-    #batsmen didn't bat
     bowling_list = inning.find_element_by_class_name("bowling") #for bowlers
-    bowlers = bowling_list.find_elements_by_tag_name("td")
+    bowlers = bowling_list.find_elements_by_tag_name("tr")
     for bowler in bowlers:
-        print(bowler.text)
-
+        tr_data = bowler.find_elements_by_tag_name("td")
+        if len(tr_data)>0:
+            player_name_bowler = tr_data[0].text
+            player_link_bowler = tr_data[0].find_element_by_tag_name("a").get_attribute('href')
+            overs = tr_data[2].text
+            maidens = tr_data[3].text
+            runs_bowler = tr_data[4].text
+            wickets = tr_data[5].text
+            econ = tr_data[6].text
+            dot_balls = tr_data[7].text
+            _4s_bowler = tr_data[8].text
+            _6s_bowler = tr_data[9].text
+            wides = tr_data[10].text
+            no_balls = tr_data[11].text
+            print(player_name_bowler+" "+player_link_bowler+" "+overs+" "+maidens+" "+runs_bowler+" "+wickets+" "+econ+" "+dot_balls+" "+_4s_bowler+" "+_6s_bowler+" "+wides+" "+no_balls)
 
 chrome_path = r"C:\Users\Rasitha\Desktop\chromedriver.exe"
 chromeOptions = webdriver.ChromeOptions()
@@ -62,9 +90,15 @@ getInningData(first_inning)
 second_inning = driver.find_element_by_id("gp-inning-01") #Second inning data
 getInningData(second_inning)
 
-with open('./CricData.csv', 'w', newline='', encoding='utf-8') as outfile:
+with open('./CricMatchData.csv', 'w', newline='', encoding='utf-8') as outfile:
     csvWriter = csv.writer(outfile)
     csvWriter.writerow(['Match', 'Title', 'MoM', 'Result', 'Winner'])
+    csvWriter.writerow([match.match_id, match.match_title, match.mom, match.match_result, match.match_win])
+outfile.close()
+
+with open('./CricMatchBattingData.csv', 'w', newline='', encoding='utf-8') as outfile:
+    csvWriter = csv.writer(outfile)
+    csvWriter.writerow(['Match', 'Player_name', 'Player_link', 'Dismissed_by', 'Commentary', 'Runs', 'Balls', 'Minutes', '4s', '6s', 'Strike_Rate'])
     csvWriter.writerow([match.match_id, match.match_title, match.mom, match.match_result, match.match_win])
 outfile.close()
 
