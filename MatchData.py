@@ -23,7 +23,6 @@ class MatchData:
 
         match_id = driver.find_element_by_xpath("""//*[@id="ciHomeContentlhs"]/div[3]/div/table[1]/tbody/tr[2]/td[7]""")
         self.match_ground_link = driver.find_element_by_xpath("""//*[@id="ciHomeContentlhs"]/div[3]/div/table[1]/tbody/tr[2]/td[5]/a""").get_attribute("href")
-
         self.match_link = match_id.find_element_by_tag_name("a").get_attribute("href")
         self.match_id_val = match_id.text;
         # print(match_id.text)
@@ -48,6 +47,8 @@ class MatchData:
         self.getInningData(first_inning)
         second_inning = driver.find_element_by_id("gp-inning-01")  # Second inning data
         self.getInningData(second_inning)
+
+
         driver.back()
 
     def saveRecord(self):
@@ -106,26 +107,66 @@ class MatchData:
 
         bowling_list = inning.find_element_by_class_name("bowling")  # for bowlers
         bowlers = bowling_list.find_elements_by_tag_name("tr")
+        #GET THE LIST OF COLUMNS
+        header = bowling_list.find_element_by_tag_name("thead")
+        ths = header.find_elements_by_tag_name("th")
+        player_name_bowler = "No_data"
+        player_link_bowler = "No_data"
+        overs = "No_data"
+        maidens = "No_data"
+        runs_bowler = "No_data"
+        wickets = "No_data"
+        econ = "No_data"
+        dot_balls = "No_data"
+        _4s_bowler = "No_data"
+        _6s_bowler = "No_data"
+        wides = "No_data"
+        no_balls = "No_data"
+
         for bowler in bowlers:
             tr_data = bowler.find_elements_by_tag_name("td")
             if len(tr_data) > 0:
-                player_name_bowler = tr_data[0].text
-                player_link_bowler = tr_data[0].find_element_by_tag_name("a").get_attribute('href')
-                overs = tr_data[2].text
-                maidens = tr_data[3].text
-                runs_bowler = tr_data[4].text
-                wickets = tr_data[5].text
-                econ = tr_data[6].text
-                dot_balls = tr_data[7].text
-                _4s_bowler = tr_data[8].text
-                _6s_bowler = tr_data[9].text
-                wides = tr_data[10].text
-                no_balls = tr_data[11].text
+                for i, td in enumerate(tr_data):
+
+                    if ths[i].text == "BOWLING":
+                        player_name_bowler = td.text
+                        player_link_bowler = td.find_element_by_tag_name("a").get_attribute('href')
+
+                    if ths[i].text == "O":
+                        overs = td.text
+
+                    if ths[i].text == "M":
+                        maidens = td.text
+
+                    if ths[i].text == "R":
+                        runs_bowler = td.text
+
+                    if ths[i].text == "W":
+                        wickets = td.text
+
+                    if ths[i].text == "ECON":
+                        econ = td.text
+
+                    if ths[i].text == "0s":
+                        dot_balls = td.text
+
+                    if ths[i].text == "4s":
+                        _4s_bowler = td.text
+
+                    if ths[i].text == "6s":
+                        _6s_bowler = td.text
+
+                    if ths[i].text == "WD":
+                        wides = td.text
+
+                    if ths[i].text == "NB":
+                        no_balls = td.text
 
                 bowler_obj = BowlerData(self.match_id_val, player_name_bowler, player_link_bowler, overs, maidens,
                                         runs_bowler, wickets, econ, dot_balls, _4s_bowler, _6s_bowler, wides, no_balls)
                 bowler_obj.saveRecord()
                 del bowler_obj
+
     # def getData(self):
     #     chrome_path = r"C:\Users\Rasitha\Desktop\chromedriver.exe"
     #     chromeOptions = webdriver.ChromeOptions()
