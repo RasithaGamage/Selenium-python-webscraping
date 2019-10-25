@@ -3,9 +3,8 @@ import traceback
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from BatsmanData import BatsmanData
-from BowlerData import BowlerData
-
+from BattingData import BattingData
+from BowlingData import BowlingData
 
 class MatchData:
     def __init__(self, url):
@@ -49,10 +48,15 @@ class MatchData:
                         self.winning_team = post.find_element_by_class_name("cscore_notes_game").text
                     except NoSuchElementException:
                         traceback.print_exc(file=open("errlog.txt", "a"))
+
                     try:
                         scores = post.find_elements_by_class_name("cscore_team")
                         self.inn_1_score = scores[0].text
+                        global inn_1_country
+                        inn_1_country = self.inn_1_score.splitlines()[0]
                         self.inn_2_score = scores[1].text
+                        global inn_2_country
+                        inn_2_country = self.inn_2_score.splitlines()[0]
                     except NoSuchElementException:
                         traceback.print_exc(file=open("errlog.txt", "a"))
 
@@ -105,6 +109,7 @@ class MatchData:
             strike_Rate = "No_data"
             commentary = "No_data"
             dismissed_by = "No_data"
+            country = "No_data"
 
             if len(check_availability) > 0:
                 try:
@@ -128,6 +133,10 @@ class MatchData:
                             _6s = record.text
                         if score_headers[i].text == "SR":
                             strike_Rate = record.text
+                        if inning.get_attribute("id") == "gp-inning-00":
+                            country = inn_1_country
+                        if inning.get_attribute("id") == "gp-inning-01":
+                            country = inn_2_country
 
                 except NoSuchElementException:
                     traceback.print_exc(file=open("errlog.txt", "a"))
@@ -145,8 +154,8 @@ class MatchData:
                 except NoSuchElementException:
                     traceback.print_exc(file=open("errlog.txt", "a"))
 
-                batsman_obj = BatsmanData(self.match_id_val, player_name, player_link, runs, balls, minutes, _4s, _6s,
-                                          strike_Rate, commentary, dismissed_by)
+                batsman_obj = BattingData(self.match_id_val, player_name, player_link, runs, balls, minutes, _4s, _6s,
+                                          strike_Rate, commentary, dismissed_by, country)
                 batsman_obj.saveRecord()
                 del batsman_obj
 
@@ -167,7 +176,7 @@ class MatchData:
         _6s_bowler = "No_data"
         wides = "No_data"
         no_balls = "No_data"
-
+        country = "No_data"
         for bowler in bowlers:
             tr_data = bowler.find_elements_by_tag_name("td")
             if len(tr_data) > 0:
@@ -179,35 +188,30 @@ class MatchData:
 
                     if ths[i].text == "O":
                         overs = td.text
-
                     if ths[i].text == "M":
                         maidens = td.text
-
                     if ths[i].text == "R":
                         runs_bowler = td.text
-
                     if ths[i].text == "W":
                         wickets = td.text
-
                     if ths[i].text == "ECON":
                         econ = td.text
-
                     if ths[i].text == "0s":
                         dot_balls = td.text
-
                     if ths[i].text == "4s":
                         _4s_bowler = td.text
-
                     if ths[i].text == "6s":
                         _6s_bowler = td.text
-
                     if ths[i].text == "WD":
                         wides = td.text
-
                     if ths[i].text == "NB":
                         no_balls = td.text
+                    if inning.get_attribute("id") == "gp-inning-00":
+                        country = inn_1_country
+                    if inning.get_attribute("id") == "gp-inning-01":
+                        country = inn_2_country
 
-                bowler_obj = BowlerData(self.match_id_val, player_name_bowler, player_link_bowler, overs, maidens,
-                                        runs_bowler, wickets, econ, dot_balls, _4s_bowler, _6s_bowler, wides, no_balls)
+                bowler_obj = BowlingData(self.match_id_val, player_name_bowler, player_link_bowler, overs, maidens,
+                                         runs_bowler, wickets, econ, dot_balls, _4s_bowler, _6s_bowler, wides, no_balls, country)
                 bowler_obj.saveRecord()
                 del bowler_obj
