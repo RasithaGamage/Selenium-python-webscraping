@@ -129,6 +129,7 @@ class MatchData:
             commentary = "No_data"
             dismissed_by = "No_data"
             country = "No_data"
+            position = l+1
 
             if len(check_availability) or len(check_availability1) > 0:
                 try:
@@ -189,7 +190,7 @@ class MatchData:
                     traceback.print_exc(file=open("errlog.txt", "a"))
 
                 batsman_obj = BattingData(self.match_id_val, player_name, player_link, runs, balls, minutes, _4s, _6s,
-                                          strike_Rate, commentary, dismissed_by, country)
+                                          strike_Rate, commentary, dismissed_by, country,position)
                 batsman_obj.saveRecord()
                 del batsman_obj
 
