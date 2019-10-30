@@ -1,12 +1,12 @@
 import csv
 import traceback
-
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from BattingData import BattingData
 from BowlingData import BowlingData
 
 class MatchData:
+
     def __init__(self, url):
         self.url = url
         chrome_path = r"C:\Users\Rasitha\Desktop\chromedriver.exe"
@@ -139,7 +139,6 @@ class MatchData:
                     score_record = batsman.find_elements_by_class_name("runs")
                 except NoSuchElementException:
                     traceback.print_exc(file=open("errlog.txt", "a"))
-
                 try:
                     if l == 0:
                         batsman = post2.find_elements_by_class_name("batsmen")[1]
@@ -212,6 +211,7 @@ class MatchData:
         wides = "No_data"
         no_balls = "No_data"
         country = "No_data"
+
         for bowler in bowlers:
             tr_data = bowler.find_elements_by_tag_name("td")
             if len(tr_data) > 0:
