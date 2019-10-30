@@ -31,7 +31,16 @@ class MatchData:
             driver.execute_script(str_script)
             driver.switch_to.window(driver.window_handles[1])
 
-            match_main = driver.find_elements_by_class_name("gameHeader")
+            try:
+                 match_main = driver.find_elements_by_class_name("gameHeader")
+            except NoSuchElementException:
+                traceback.print_exc(file=open("errlog.txt", "a"))
+
+            self.player_of_match = "No data"
+            self.winning_team  = "No data"
+            self.info_overview = "No data"
+            self.inn_1_score = "No data"
+            self.inn_2_score = "No data"
 
             for post in match_main:
                 if post.text != "":
@@ -61,6 +70,7 @@ class MatchData:
                         traceback.print_exc(file=open("errlog.txt", "a"))
 
             self.saveRecord()
+
             try:
                 first_inning = driver.find_element_by_id("gp-inning-00")  # First inning data
                 self.getInningData(first_inning)
@@ -78,7 +88,7 @@ class MatchData:
     def saveRecord(self):
         with open('./CricMatchData.csv', 'a', newline='', encoding='utf-8') as outfile:
             csvWriter = csv.writer(outfile)
-            csvWriter.writerow(['Match', 'Ground_link', 'Match_link', 'Title', 'MoM', 'Result', 'Winner'])
+            # csvWriter.writerow(['Match', 'Ground_link', 'Match_link', 'Title', 'MoM', 'Result', 'Winner'])
             csvWriter.writerow([self.match_id_val, self.match_ground_link, self.match_link, self.info_overview, self.player_of_match, self.inn_1_score +" "+self.inn_2_score, self.winning_team])
         outfile.close()
 
@@ -92,12 +102,21 @@ class MatchData:
         except NoSuchElementException:
             traceback.print_exc(file=open("errlog.txt", "a"))
 
-        for post2 in batsmen_score:
+        for l, post2 in enumerate(batsmen_score):
             check_availability = ""
+            check_availability1= ""
+
             try:
                 check_availability = post2.find_element_by_class_name("batsmen").find_element_by_class_name("batsmen").text
+                print("check_availability "+ check_availability)
             except NoSuchElementException:
                 traceback.print_exc(file=open("errlog.txt", "a"))
+
+            try:
+                check_availability1 = post2.find_elements_by_class_name("batsmen")[1].find_element_by_class_name("batsmen").text
+                print("check_availability1 " + check_availability1)
+            except Exception:
+                None
 
             player_name = "No_data"
             player_link = "No_data"
@@ -111,16 +130,26 @@ class MatchData:
             dismissed_by = "No_data"
             country = "No_data"
 
-            if len(check_availability) > 0:
+            if len(check_availability) or len(check_availability1) > 0:
                 try:
                     batsman = post2.find_element_by_class_name("batsmen")
                     player_name = batsman.find_element_by_class_name("batsmen").text
                     player_link = batsman.find_element_by_class_name("batsmen").find_element_by_tag_name("a").get_attribute('href')
-
                     score_record = batsman.find_elements_by_class_name("runs")
+                except NoSuchElementException:
+                    traceback.print_exc(file=open("errlog.txt", "a"))
 
-                    for i, record in enumerate(score_record):
+                try:
+                    if l == 0:
+                        batsman = post2.find_elements_by_class_name("batsmen")[1]
+                        player_name = batsman.find_element_by_class_name("batsmen").text
+                        player_link = batsman.find_element_by_class_name("batsmen").find_element_by_tag_name("a").get_attribute('href')
+                        score_record = batsman.find_elements_by_class_name("runs")
+                except NoSuchElementException:
+                    traceback.print_exc(file=open("errlog.txt", "a"))
 
+                for i, record in enumerate(score_record):
+                    try:
                         if score_headers[i].text == "R":
                             runs = record.text
                         if score_headers[i].text == "B":
@@ -137,10 +166,8 @@ class MatchData:
                             country = inn_1_country
                         if inning.get_attribute("id") == "gp-inning-01":
                             country = inn_2_country
-
-                except NoSuchElementException:
-                    traceback.print_exc(file=open("errlog.txt", "a"))
-
+                    except NoSuchElementException:
+                        traceback.print_exc(file=open("errlog.txt", "a"))
                 try:
                     commentary1 = post2.find_element_by_class_name("commentary-content")
                     commentary = commentary1.get_attribute("textContent")
@@ -149,6 +176,13 @@ class MatchData:
 
                 try:
                     commentary2 = post2.find_element_by_class_name("commentary")  # for find not out batsman
+                    dismissed_by = commentary2.get_attribute("textContent")
+                    # print(dismissed_by)
+                except NoSuchElementException:
+                    traceback.print_exc(file=open("errlog.txt", "a"))
+
+                try:
+                    commentary2 = post2.find_elements_by_class_name("batsmen")[1].find_element_by_class_name("commentary")  # for find not out batsman
                     dismissed_by = commentary2.get_attribute("textContent")
                     # print(dismissed_by)
                 except NoSuchElementException:
